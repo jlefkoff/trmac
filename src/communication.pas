@@ -26,6 +26,9 @@ uses baseunix,unix,termio,ieee1284,sysutils,ctypes;
 
 const buflen = 16384;
 
+const
+  // macOS ioctl to set arbitrary baud rates:
+  IOSSIOSPEED = $80045402; // _IOW('T', 2, speed_t)
 
 type
   ParityType = (NoParity, EvenParity, OddParity);
@@ -173,9 +176,9 @@ end;
 constructor serialportx.create(devicename: string);
 var tempfile: text;
     tios: termios;
-    sset: serial_struct;
-//    rc: longint;
-//    i,flags: integer;
+    // sset: serial_struct;
+    // rc: longint;
+    // i,flags: integer;
 begin
    if pos('PTY',upcase(devicename)) = 1 then
       begin
@@ -245,9 +248,9 @@ begin
          fd := fpopen(devicename,O_RDWR or O_NONBLOCK or O_NOCTTY);
          if (fd >= 0) then //set low latency flag for ftdi chips
          begin
-            fpioctl(fd,TIOCGSERIAL,@sset);
-            sset.flags := sset.flags or ASYNC_LOW_LATENCY;
-            fpioctl(fd,TIOCSSERIAL,@sset);
+            // fpioctl(fd,TIOCGSERIAL,@sset);
+            // sset.flags := sset.flags or ASYNC_LOW_LATENCY;
+            // fpioctl(fd,TIOCSSERIAL,@sset);
             fpclose(fd);
             fd := fpopen(devicename,O_RDWR or O_NONBLOCK or O_NOCTTY);
          end;
@@ -495,7 +498,7 @@ var
 begin
 //  FillChar(tios, SizeOf(tios), #0);
   tcgetattr(fd,tios);
-
+  cfmakeraw(tios);
 
   baudbits := 0;
   case baud of
@@ -516,11 +519,21 @@ begin
     57600: baudbits := B57600;
     115200: baudbits := B115200;
     230400: baudbits := B230400;
-    460800: baudbits := B460800;
     else baudbits := B9600;
   end;
-  cfsetispeed(tios,baudbits);
-  cfsetospeed(tios,baudbits);
+  if baudbits <> 0 then
+  begin
+    cfsetispeed(tios, baudbits);
+    cfsetospeed(tios, baudbits);
+    tcsetattr(fd, TCSANOW, tios);
+  end
+  else
+  begin
+    // macOS arbitrary baud: set placeholder then use IOSSIOSPEED ioctl
+    cfsetispeed(tios, B9600);
+    cfsetospeed(tios, B9600);
+    tcsetattr(fd, TCSANOW, tios);
+  end;
 
   tios.c_cflag := tios.c_cflag or CREAD or CLOCAL;
 

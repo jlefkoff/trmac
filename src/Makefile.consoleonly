@@ -62,7 +62,6 @@ SRC=\
    tr.pas\
    tree.pas\
    memlinux.pas\
-   linuxsound.pas\
    communication.pas\
    lowlatency.pas\
    ieee1284.pas\
@@ -74,9 +73,21 @@ SRC=\
    portname.pas\
    datetimec.pas
 
-
 trlog: $(SRC) hidapi.h hid.o dupe.o dt.o findports.o
-	fpc -O2 -B -Mobjfpc -g -gl -otrlog tr -k-rpath=\$$ORIGIN/lib -k'-z origin'
+	fpc -O2 -B -Mobjfpc -g -gl -otrlog \
+	-Fl/opt/homebrew/opt/gcc/lib/gcc/15 \
+	-Fl/opt/X11/lib \
+	-k-lX11 \
+	-k:/opt/homebrew/opt/gcc/lib/gcc/15/libgcc_s.1.1.dylib \
+	-I/opt/homebrew/Cellar/libusb/1.0.29/include/libusb-1.0 \
+	-I/opt/homebrew/Cellar/hidapi/0.14.0/include/hidapi \
+	-k:/opt/homebrew/Cellar/libusb/1.0.29/lib \
+	-k:/opt/homebrew/Cellar/hidapi/0.14.0/lib/libhidapi.dylib \
+	tr
+
+
+
+
 
 install:
 #	sudo install -m 4755 trlog ../log/trlog

@@ -1,80 +1,79 @@
-#Copyright Larry Tyree, N6TR, 2011,2012,2013,2014,2015.
+# Copyright Larry Tyree, N6TR
+# Modified for macOS by ChatGPT, 2025
 
-#This file is part of TR log for linux.
+# Detect TeX binaries (works with Homebrew or MacTeX)
+TEXBIN := $(shell which pdflatex 2>/dev/null | xargs dirname)
+# --- macOS-safe PATH + SHELL setup ---
+PATH := $(PATH):/usr/local/texlive/bin/universal-darwin
+SHELL := /bin/sh
+export PATH
 
-#TR log for linux is free software: you can redistribute it and/or
-#modify it under the terms of the GNU General Public License as
-#published by the Free Software Foundation, either version 2 of the
-#License, or (at your option) any later version.
+# If you installed circuit_macros via Homebrew, it's usually under /opt/homebrew/share/circuit_macros
+# or /usr/local/share/circuit_macros. You can override this by running:
+#   make HOMELIB=/path/to/circuit_macros
+HOMELIB ?= /opt/homebrew/share/circuit_macros
+ifeq ("$(wildcard $(HOMELIB))","")
+HOMELIB := /usr/local/share/circuit_macros
+endif
 
-#TR log for linux is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
+M4 = m4 \
+    $(HOMELIB)/gpic.m4 \
+    $(HOMELIB)/libgen.m4 \
+    $(HOMELIB)/libcct.m4 \
+    $(HOMELIB)/liblog.m4 \
+    $(HOMELIB)/lib3D.m4 \
+    $(HOMELIB)/darrow.m4
 
-#You should have received a copy of the GNU General
-#    Public License along with TR log for linux.  If not, see
-#<http://www.gnu.org/licenses/>.
-
-PATH := $(PATH):/usr/share/texmf/bin
-SHELL := env PATH=$(PATH) /bin/sh
-
-HOMELIB=/usr/local/circuit_macros
-M4=m4\
-   $(HOMELIB)/gpic.m4\
-   $(HOMELIB)/libgen.m4\
-   $(HOMELIB)/libcct.m4\
-   $(HOMELIB)/liblog.m4\
-   $(HOMELIB)/lib3D.m4\
-   $(HOMELIB)/darrow.m4
-
-BASE=trloglinux
+BASE = trloglinux
 
 .SUFFIXES: .tex .m4 .jpg .eps .ps .pdf
 
+# === PDF target ===
 $(BASE).pdf: $(BASE).tex
-	find . -name \*eps -exec epstopdf {} \;
+	find . -name '*.eps' -exec epstopdf {} \;
 	pdflatex $(BASE)
 	makeindex $(BASE)
 	pdflatex $(BASE)
 	pdflatex $(BASE)
 
+# === DVI target (legacy) ===
 $(BASE).dvi: $(BASE).tex
 	latex $(BASE)
 	latex $(BASE)
 	latex $(BASE)
 
+# === Clean targets ===
 distclean:
-	rm -f *\.pdf *\.log  *\.end
-	rm -f *\.aux *\.toc *\.lof
-	rm -f *\.bbl *\.blg *\.dvi
-	rm -f *\.ilg *\.idx *\.ind
+	rm -f *.pdf *.log *.end
+	rm -f *.aux *.toc *.lof
+	rm -f *.bbl *.blg *.dvi
+	rm -f *.ilg *.idx *.ind
 
 clean:
-	rm -f *\.log  *\.end
-	rm -f *\.aux *\.toc *\.lof
-	rm -f *\.bbl *\.blg *\.dvi
-	rm -f *\.ilg *\.idx *\.ind
+	rm -f *.log *.end
+	rm -f *.aux *.toc *.lof
+	rm -f *.bbl *.blg *.dvi
+	rm -f *.ilg *.idx *.ind
 
-
+# === M4 -> TeX rule ===
 .m4.tex:
-	$(M4) $< |gpic -t > $@
+	$(M4) $< | gpic -t > $@
 	echo '\centerline{\box\graph}' >> $@
 
+# === TeX -> EPS rule ===
 .tex.eps:
-	echo $*
-	echo $@
+	echo "Generating EPS for $*"
 	echo "\documentclass[12pt]{article}" > temp.tex
+	echo "\usepackage{graphicx}" >> temp.tex
 	echo "\pagestyle{empty}" >> temp.tex
 	echo "\begin{document}" >> temp.tex
 	echo "\begin{figure}[h]" >> temp.tex
 	echo "\include{$*}" >> temp.tex
 	echo "\end{figure}" >> temp.tex
-	echo "." >> temp.tex
 	echo "\end{document}" >> temp.tex
 	latex temp.tex
 	dvips -E -o $@ temp.dvi
 
+# === EPS -> PDF rule ===
 .eps.pdf:
 	epstopdf $<
-

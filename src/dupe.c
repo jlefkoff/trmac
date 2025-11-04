@@ -23,11 +23,17 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <fcntl.h>
+/* linux/kd.h is linux-only (KIOCSOUND etc). Wrap it */
+#ifdef __linux__
 #include <linux/kd.h>
+#endif
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+/* prctl is linux-only */
+#ifdef __linux__
 #include <sys/prctl.h>
+#endif
 #include <unistd.h>
 #include <locale.h>
 #include <langinfo.h>
@@ -143,7 +149,7 @@ void shiftchange(int is) {
          XUngrabKey(display,shiftl,Mod1Mask,xtermwindow);
          XUngrabKey(display,shiftr,Mod1Mask,xtermwindow);
          break;
-   } 
+   }
 
    ishift = is;
    switch (ishift) {
@@ -352,17 +358,33 @@ short BYTADDR(int *call, short ncall, int *carray) {
 static int fdconsole = -1;
 
 void openconsole() {
+#ifdef __linux__
    fdconsole = open("/dev/console", O_RDONLY|O_NONBLOCK);
+#else
+   /* macOS: no /dev/console KIOCSOUND support; keep fdconsole -1 so sounder falls back */
+   fdconsole = -1;
+#endif
 }
 
+/* Linux-specific sound (KIOCSOUND). Provide a simple fallback on non-Linux:
+   - On Linux: use ioctl(fdconsole, KIOCSOUND, ...) as before.
+   - On macOS/others: emit a terminal bell character as a minimal fallback.
+*/
 void sounder(int hz) {
+#ifdef __linux__
    if (fdconsole == -1) return;
    if (hz == 0) {
       ioctl(fdconsole, KIOCSOUND,0);
    } else {
       ioctl(fdconsole, KIOCSOUND, 1193180/hz);
    }
-//   ioctl(fdconsole, KDMKTONE, (duration<<16)+(1193180/hz));
+#else
+   /* Fallback: terminal bell (not frequency-controlled). */
+   (void)hz;
+   if (hz == 0) return;
+   /* write a single ASCII bell to stdout */
+   write(STDOUT_FILENO, "\a", 1);
+#endif
 }
 
 void linuxsoundon(int hz) {
@@ -385,20 +407,30 @@ short paralleladdress(short i) {
    return parallel[i-1];
 }
 
+/* getlegacy reads legacy addresses from /dev/mem on Linux.
+   On non-Linux: set addresses to 0 and return quietly.
+*/
 void getlegacy() {
+#ifdef __linux__
    int memfd,i;
    off_t off,offset = 0x400;
    short address[7];
    if ((memfd = open("/dev/mem",O_RDONLY)) == -1) {
       perror("legacy /dev/mem");
+      return;
    }
    if ((off = lseek(memfd,offset,SEEK_SET)) == -1) {
       perror("legacy lseek");
+      close(memfd);
+      return;
    }
 
    if ((i = read(memfd,&address,7*sizeof(short))) == -1) {
       perror("legacy read");
+      close(memfd);
+      return;
    }
+   close(memfd);
    serial[0] = address[0];
    serial[1] = address[1];
    serial[2] = address[2];
@@ -406,14 +438,30 @@ void getlegacy() {
    parallel[0] = address[4];
    parallel[1] = address[5];
    parallel[2] = address[6];
+#else
+   /* macOS / other: no /dev/mem access; zero these out */
+   serial[0] = serial[1] = serial[2] = serial[3] = 0;
+   parallel[0] = parallel[1] = parallel[2] = 0;
+#endif
 }
 
+/* prctl(PR_SET_PDEATHSIG,...) is linux-specific; provide no-op on other platforms */
 void diewithparent() {
+#ifdef __linux__
    prctl(PR_SET_PDEATHSIG,SIGKILL);
+#else
+   /* no-op on macOS */
+   (void)0;
+#endif
 }
 
 void hangupwithparent() {
+#ifdef __linux__
    prctl(PR_SET_PDEATHSIG,SIGHUP);
+#else
+   /* no-op on macOS */
+   (void)0;
+#endif
 }
 
 void getdegree(char *d) {

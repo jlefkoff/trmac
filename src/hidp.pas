@@ -21,7 +21,7 @@
 unit hidp;
 {$mode objfpc}
 {$l hid.o}
-{$linklib libusb-1.0}
+{$linklib usb-1.0}
 {$linklib libudev}
 
 interface
