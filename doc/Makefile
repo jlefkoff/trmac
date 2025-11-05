@@ -1,16 +1,27 @@
-# Copyright Larry Tyree, N6TR
-# Modified for macOS by ChatGPT, 2025
+#Copyright Jonah Lefkoff, K0RG, 2025.
+#Copyright Larry Tyree, N6TR, 2011,2012,2013,2014,2015.
 
-# Detect TeX binaries (works with Homebrew or MacTeX)
-TEXBIN := $(shell which pdflatex 2>/dev/null | xargs dirname)
+#This file is part of TR log for mac.
+
+#TR log for mac is free software: you can redistribute it and/or
+#modify it under the terms of the GNU General Public License as
+#published by the Free Software Foundation, either version 2 of the
+#License, or (at your option) any later version.
+
+#TR log for mac is distributed in the hope that it will be useful,
+#but WITHOUT ANY WARRANTY; without even the implied warranty of
+#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#GNU General Public License for more details.
+
+#You should have received a copy of the GNU General
+#    Public License along with TR log for mac.  If not, see
+#<http://www.gnu.org/licenses/>.
+
 # --- macOS-safe PATH + SHELL setup ---
 PATH := $(PATH):/usr/local/texlive/bin/universal-darwin
 SHELL := /bin/sh
 export PATH
 
-# If you installed circuit_macros via Homebrew, it's usually under /opt/homebrew/share/circuit_macros
-# or /usr/local/share/circuit_macros. You can override this by running:
-#   make HOMELIB=/path/to/circuit_macros
 HOMELIB ?= /opt/homebrew/share/circuit_macros
 ifeq ("$(wildcard $(HOMELIB))","")
 HOMELIB := /usr/local/share/circuit_macros
@@ -28,7 +39,6 @@ BASE = trloglinux
 
 .SUFFIXES: .tex .m4 .jpg .eps .ps .pdf
 
-# === PDF target ===
 $(BASE).pdf: $(BASE).tex
 	find . -name '*.eps' -exec epstopdf {} \;
 	pdflatex $(BASE)
@@ -36,13 +46,11 @@ $(BASE).pdf: $(BASE).tex
 	pdflatex $(BASE)
 	pdflatex $(BASE)
 
-# === DVI target (legacy) ===
 $(BASE).dvi: $(BASE).tex
 	latex $(BASE)
 	latex $(BASE)
 	latex $(BASE)
 
-# === Clean targets ===
 distclean:
 	rm -f *.pdf *.log *.end
 	rm -f *.aux *.toc *.lof
@@ -55,12 +63,10 @@ clean:
 	rm -f *.bbl *.blg *.dvi
 	rm -f *.ilg *.idx *.ind
 
-# === M4 -> TeX rule ===
 .m4.tex:
 	$(M4) $< | gpic -t > $@
 	echo '\centerline{\box\graph}' >> $@
 
-# === TeX -> EPS rule ===
 .tex.eps:
 	echo "Generating EPS for $*"
 	echo "\documentclass[12pt]{article}" > temp.tex
@@ -74,6 +80,5 @@ clean:
 	latex temp.tex
 	dvips -E -o $@ temp.dvi
 
-# === EPS -> PDF rule ===
 .eps.pdf:
 	epstopdf $<

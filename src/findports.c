@@ -1,12 +1,21 @@
+//Copyright Jonah Lefkoff, K0RG, 2025.
+//Copyright Larry Tyree, N6TR, 2011,2012,2013,2014,2015.
 //
-// Portable findports.c (macOS & Linux)
-// Copyright Larry Tyree, N6TR, 2011–2015.
-// Ported for macOS by ChatGPT, 2025.
+//This file is part of TR log for mac.
 //
-// This file is part of TR log for linux/mac.
+//TR log for mac is free software: you can redistribute it and/or
+//modify it under the terms of the GNU General Public License as
+//published by the Free Software Foundation, either version 2 of the
+//License, or (at your option) any later version.
 //
-// Licensed under the GPL v2 or later.
+//TR log for mac is distributed in the hope that it will be useful,
+//but WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//GNU General Public License for more details.
 //
+//You should have received a copy of the GNU General
+//    Public License along with TR log for mac.  If not, see
+//<http://www.gnu.org/licenses/>.
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -32,7 +41,6 @@ static void catstr(char *dest, const char *src, int ndest) {
     }
 }
 
-// On macOS, serial ports usually appear as /dev/tty.* or /dev/cu.*
 int findserial(char **buf, int bufsize, int n) {
     int count = 0;
     glob_t globbuf;
@@ -71,31 +79,3 @@ int findparallel(char **buf, int bufsize, int n) {
     (void)n;
     return 0;
 }
-
-/*
-#define PNUM 10
-int main(void) {
-    char **buf;
-    int i, n;
-    buf = (char**) malloc(PNUM * sizeof(char*));
-    for (i = 0; i < PNUM; i++) {
-        buf[i] = (char*) malloc(80 * sizeof(char));
-    }
-
-    printf("Serial ports:\n");
-    n = findserial(buf, 80, PNUM);
-    for (i = 0; i < n; i++)
-        printf("  %s\n", buf[i]);
-
-    printf("\nParallel ports:\n");
-    n = findparallel(buf, 80, PNUM);
-    for (i = 0; i < n; i++)
-        printf("  %s\n", buf[i]);
-
-    for (i = 0; i < PNUM; i++)
-        free(buf[i]);
-    free(buf);
-    return 0;
-}
-*/
-
