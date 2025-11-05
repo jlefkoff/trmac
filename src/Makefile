@@ -83,8 +83,21 @@ SRC=\
    rigctld.pas\
    datetimec.pas
 
-trlog: $(SRC) hidapi.h hid.o dupe.o dt.o findports.o scoreposter.o
-	 $(PC) -O2 -B -Mobjfpc -g -gl -otrlog tr
+trlog: $(SRC) hidapi.h hid.o dupe.o dt.o findports.o scoreposter.o getpt.o
+	fpc -O2 -B -Mobjfpc -g -gl -otrlog \
+	-Fl/opt/homebrew/opt/gcc/lib/gcc/15 \
+	-Fl/opt/X11/lib \
+   -k-lX11 \
+   -k-L/opt/homebrew/opt/gcc/lib/gcc/15 \
+   -I/opt/homebrew/Cellar/libusb/1.0.29/include/libusb-1.0 \
+   -I/opt/homebrew/Cellar/hidapi/0.14.0/include/hidapi \
+   -k-L/opt/homebrew/Cellar/libusb/1.0.29/lib \
+   -k-L/opt/homebrew/Cellar/hidapi/0.14.0/lib \
+   -k-lusb-1.0 \
+   -k-lhidapi \
+   -k"-framework IOKit" \
+   -k-lutil \
+	tr
 
 ccode: hidapi.h hid.o dupe.o dt.o findports.o scoreposter.o curlroutines.o
 

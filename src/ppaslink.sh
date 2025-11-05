@@ -6,6 +6,6 @@ DoExitLink ()
 OFS=$IFS
 IFS="
 "
-/Library/Developer/CommandLineTools/usr/bin/ld     -lX11 :/opt/homebrew/opt/gcc/lib/gcc/15/libgcc_s.1.1.dylib :/opt/homebrew/Cellar/libusb/1.0.29/lib :/opt/homebrew/Cellar/hidapi/0.14.0/lib/libhidapi.dylib      -order_file symbol_order.fpc -multiply_defined suppress -L. -o trlog `cat link63961.res` -filelist linkfiles63961.res
+/Library/Developer/CommandLineTools/usr/bin/ld          -order_file symbol_order.fpc -multiply_defined suppress -L. -o post `cat link18328.res` -filelist linkfiles18328.res
 if [ $? != 0 ]; then DoExitLink ; fi
 IFS=$OFS

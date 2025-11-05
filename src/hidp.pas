@@ -22,7 +22,9 @@ unit hidp;
 {$mode objfpc}
 {$l hid.o}
 {$linklib usb-1.0}
+{$IFDEF LINUX}
 {$linklib libudev}
+{$ENDIF}
 
 interface
 
