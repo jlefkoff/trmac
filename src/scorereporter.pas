@@ -1,6 +1,7 @@
 {$mode objfpc}
 unit scorereporter;
 {$l scoreposter.o}
+{$l getpt.o}
 
 interface
 uses classes,baseunix,unix,ctypes;

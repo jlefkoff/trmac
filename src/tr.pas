@@ -4314,7 +4314,7 @@ var oa4,na4,oa8,na8,oa11,na11:  PSigActionRec;
     na4^.sa_Handler := SigActionHandler(SIG_DFL);
     fillchar(na4^.Sa_Mask,sizeof(na4^.sa_mask),#0);
     na4^.Sa_Flags:=0;
-    na4^.Sa_Restorer:=Nil;
+    // na4^.Sa_Restorer:=Nil;
     fpSigAction(SIGILL,na4,oa4);
 
     new(na8);
@@ -4322,7 +4322,7 @@ var oa4,na4,oa8,na8,oa11,na11:  PSigActionRec;
     na8^.sa_Handler := SigActionHandler(SIG_DFL);
     fillchar(na8^.Sa_Mask,sizeof(na8^.sa_mask),#0);
     na8^.Sa_Flags:=0;
-    na8^.Sa_Restorer:=Nil;
+    // na8^.Sa_Restorer:=Nil;
     fpSigAction(SIGFPE,na8,oa8);
 
     new(na11);
@@ -4330,7 +4330,7 @@ var oa4,na4,oa8,na8,oa11,na11:  PSigActionRec;
     na11^.sa_Handler := SigActionHandler(SIG_DFL);
     fillchar(na11^.Sa_Mask,sizeof(na11^.sa_mask),#0);
     na11^.Sa_Flags:=0;
-    na11^.Sa_Restorer:=Nil;
+    // na11^.Sa_Restorer:=Nil;
     fpSigAction(SIGSEGV,na11,oa11);
 
     RememberCWSpeed := 0;

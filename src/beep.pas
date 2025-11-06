@@ -41,7 +41,17 @@ Type
     end;
 
 IMPLEMENTATION
-uses linuxsound;
+
+PROCEDURE LSound(freq: INTEGER);
+begin
+    // On macOS, you use system beep, e.g., ANSI bell
+    Write(#7); // ASCII bell
+end;
+
+PROCEDURE LNoSound;
+begin
+    // macOS: do nothing
+end;
 
 PROCEDURE Beeper.DoABeep (TypeOfBeep: BeepType);
     BEGIN

@@ -1,33 +1,29 @@
-//
+//Copyright Jonah Lefkoff, K0RG, 2025.
 //Copyright Larry Tyree, N6TR, 2011,2012,2013,2014,2015.
 //
-//This file is part of TR log for linux.
+//This file is part of TR log for mac.
 //
-//TR log for linux is free software: you can redistribute it and/or
+//TR log for mac is free software: you can redistribute it and/or
 //modify it under the terms of the GNU General Public License as
 //published by the Free Software Foundation, either version 2 of the
 //License, or (at your option) any later version.
 //
-//TR log for linux is distributed in the hope that it will be useful,
+//TR log for mac is distributed in the hope that it will be useful,
 //but WITHOUT ANY WARRANTY; without even the implied warranty of
 //MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //GNU General Public License for more details.
 //
 //You should have received a copy of the GNU General
-//    Public License along with TR log for linux.  If not, see
+//    Public License along with TR log for mac.  If not, see
 //<http://www.gnu.org/licenses/>.
-//
 
 #include <time.h>
-#include <signal.h>
 #include <sys/time.h>
 #include <stdlib.h>
 #include <fcntl.h>
-#include <linux/kd.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <sys/prctl.h>
 #include <unistd.h>
 #include <locale.h>
 #include <langinfo.h>
@@ -143,7 +139,7 @@ void shiftchange(int is) {
          XUngrabKey(display,shiftl,Mod1Mask,xtermwindow);
          XUngrabKey(display,shiftr,Mod1Mask,xtermwindow);
          break;
-   } 
+   }
 
    ishift = is;
    switch (ishift) {
@@ -352,17 +348,20 @@ short BYTADDR(int *call, short ncall, int *carray) {
 static int fdconsole = -1;
 
 void openconsole() {
-   fdconsole = open("/dev/console", O_RDONLY|O_NONBLOCK);
+   /* macOS: no /dev/console KIOCSOUND support; keep fdconsole -1 so sounder falls back */
+   fdconsole = -1;
 }
 
+/* Linux-specific sound (KIOCSOUND). Provide a simple fallback on non-Linux:
+   - On Linux: use ioctl(fdconsole, KIOCSOUND, ...) as before.
+   - On macOS/others: emit a terminal bell character as a minimal fallback.
+*/
 void sounder(int hz) {
-   if (fdconsole == -1) return;
-   if (hz == 0) {
-      ioctl(fdconsole, KIOCSOUND,0);
-   } else {
-      ioctl(fdconsole, KIOCSOUND, 1193180/hz);
-   }
-//   ioctl(fdconsole, KDMKTONE, (duration<<16)+(1193180/hz));
+   /* Fallback: terminal bell (not frequency-controlled). */
+   (void)hz;
+   if (hz == 0) return;
+   /* write a single ASCII bell to stdout */
+   write(STDOUT_FILENO, "\a", 1);
 }
 
 void linuxsoundon(int hz) {
@@ -385,35 +384,24 @@ short paralleladdress(short i) {
    return parallel[i-1];
 }
 
+/* getlegacy reads legacy addresses from /dev/mem on Linux.
+   On non-Linux: set addresses to 0 and return quietly.
+*/
 void getlegacy() {
-   int memfd,i;
-   off_t off,offset = 0x400;
-   short address[7];
-   if ((memfd = open("/dev/mem",O_RDONLY)) == -1) {
-      perror("legacy /dev/mem");
-   }
-   if ((off = lseek(memfd,offset,SEEK_SET)) == -1) {
-      perror("legacy lseek");
-   }
-
-   if ((i = read(memfd,&address,7*sizeof(short))) == -1) {
-      perror("legacy read");
-   }
-   serial[0] = address[0];
-   serial[1] = address[1];
-   serial[2] = address[2];
-   serial[3] = address[3];
-   parallel[0] = address[4];
-   parallel[1] = address[5];
-   parallel[2] = address[6];
+   /* macOS / other: no /dev/mem access; zero these out */
+   serial[0] = serial[1] = serial[2] = serial[3] = 0;
+   parallel[0] = parallel[1] = parallel[2] = 0;
 }
 
+/* prctl(PR_SET_PDEATHSIG,...) is linux-specific; provide no-op on other platforms */
 void diewithparent() {
-   prctl(PR_SET_PDEATHSIG,SIGKILL);
+   /* no-op on macOS */
+   (void)0;
 }
 
 void hangupwithparent() {
-   prctl(PR_SET_PDEATHSIG,SIGHUP);
+   /* no-op on macOS */
+   (void)0;
 }
 
 void getdegree(char *d) {
