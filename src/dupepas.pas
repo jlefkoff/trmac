@@ -1,30 +1,21 @@
-//
+//Copyright Jonah Lefkoff, K0RG, 2025.
 //Copyright Larry Tyree, N6TR, 2011,2012,2013,2014,2015.
 //
-//This file is part of TR log for linux.
+//This file is part of TR log for mac.
 //
-//TR log for linux is free software: you can redistribute it and/or
+//TR log for mac is free software: you can redistribute it and/or
 //modify it under the terms of the GNU General Public License as
 //published by the Free Software Foundation, either version 2 of the
 //License, or (at your option) any later version.
 //
-//TR log for linux is distributed in the hope that it will be useful,
+//TR log for mac is distributed in the hope that it will be useful,
 //but WITHOUT ANY WARRANTY; without even the implied warranty of
 //MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //GNU General Public License for more details.
 //
 //You should have received a copy of the GNU General
-//    Public License along with TR log for linux.  If not, see
+//    Public License along with TR log for mac.  If not, see
 //<http://www.gnu.org/licenses/>.
-//
-
-//KS - These routines are defined in this weird way because they are
-//replacements for the original TR DOS assembly language routines.
-//They are put in a unit so that they can be compiled to an object file.
-//The aliases force those names to appear in the object file for linking.
-//In linux run nm dupepas.o to see the free pascal mangled names and the
-//alias name. The alias names are the names of the original assembler routines.
-//This should be cleaned up eventually.
 
 unit dupepas;
 interface
